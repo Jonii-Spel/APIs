@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<body>
+
+<div ng-app="myApp" ng-controller="myCtrl"> 
+
+<p>Listado de usuarios</p>
+<table>
+    <thead>
+        <th>Nombre</th>
+        <th>Email</th>
+    </thead>
+    <tbody>
+        <tr ng-repeat="u in users">
+            <td>{{ u.name }}</td>
+            <td>{{ u.email }}</td>
+        </tr>
+    </tbody>
+</table>
+
+</div>
+
+<script>
+var app = angular.module('myApp', []);
+app.controller('myCtrl', function($scope, $http) {
+  $http.post("http://localhost:8000/api/users/list")
+  .then(function(response) {
+      $scope.users = response.data.data;
+  });
+});
+</script>
+
+</body>
+</html>
