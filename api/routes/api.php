@@ -22,6 +22,6 @@ $router->get('/users/list',['uses' => 'UserController@index']);
 $router->post('/users/create',['uses' => 'UserController@store']);
 $router->delete('/users/delete/{id}',['uses' => 'UserController@destroy']);
 $router->put('/users/update/{id}',['uses' => 'UserController@update']);
-
+$router->get('/users/show/{id}',['uses' => 'UserController@show']);
 
 

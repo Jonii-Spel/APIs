@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User; //Comentar para forzar excepcion.
+use Illuminate\Support\Facades\Validator; //Sirve para la validacion
+use Illuminate\Support\Facades\Hash; //Sirve para encriptar contrasenias
 
 class UserController extends Controller
 {
@@ -34,7 +36,41 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        return User::create($request->all());
+
+        if (!is_array($request->all())) {
+            return ['error' => 'request must be an array'];
+        }
+
+        // Creamos las reglas de validación
+        $rules = [
+            'name'      => 'required|min:3',
+            'email'     => 'required|email|unique:users,email',
+            'password'  => 'required|min:6'
+            ];
+ 
+        try{
+                // Ejecutamos el validador y en caso de que falle devolvemos la respuesta
+                // con los errores
+                $validator = Validator::make($request->all(), $rules);
+                    if ($validator->fails()) {
+                        return [
+                            'created' => false,
+                            'errors'  => $validator->errors()->all()
+                        ];
+                    }
+                // Si el validador pasa, almacenamos el usuario
+                User::create([
+                    'name' => $request['name'],
+                    'email' => $request['email'],
+                    'password' => Hash::make($request['password'])]);
+                return ['created' => true];
+            }
+        catch (Exception $e)
+        {
+            // Si algo sale mal devolvemos un error.
+            Log::info('Error creating user: '.$e);
+            return Response::json(['created' => false], 500);
+        }
     }
 
     /**
@@ -46,11 +82,25 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $usuario = User::findOrFail($id);
-        $usuario->update($request->all());
+        // $usuario = User::findOrFail($id);
+        // $usuario->update($request->all());
+        // $usuario->save();
+
+        // return $usuario;
+
+        User::find($id)
+        ->update($request->all());
+
         
-        return $usuario;
     }
+
+    public function show($id)
+    {
+        return User::findOrFail($id);
+
+
+    }
+
 
     /**
      * Remove the specified resource from storage.
@@ -58,11 +108,10 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $usuario = User::findOrFail($id);
-        $usuario->delete();
+        User::destroy($id);
         
-        return 204; 
+        return ['deleted' => true];
     }
 }
