@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\User; //Comentar para forzar excepcion.
 use Illuminate\Support\Facades\Validator; //Sirve para la validacion
@@ -20,11 +22,10 @@ class UserController extends Controller
         try {
 
             $users = User::all();
-            return response()->json(['status' => true, 'data' => $users, 'message' => ""], 202);
+            return response()->json(['status' => true, 'data' => $users, 'message' => "Listado de Users"], 202);
         } catch (   Throwable $th) {
             return response()->json(['status' => false, 'data' => '', 'message' => $th->getMessage()],404);
-        }
-        
+        }  
     }
 
 
@@ -59,17 +60,20 @@ class UserController extends Controller
                         ];
                     }
                 // Si el validador pasa, almacenamos el usuario
-                User::create([
+                $users = User::create([
                     'name' => $request['name'],
                     'email' => $request['email'],
                     'password' => Hash::make($request['password'])]);
-                return ['created' => true];
+
+                return response()->json(['status' => true, 'data' => $users, 'message' => "Se ha creado con exito"], 200);  
             }
+
         catch (Exception $e)
         {
             // Si algo sale mal devolvemos un error.
             Log::info('Error creating user: '.$e);
             return Response::json(['created' => false], 500);
+            return response()->json(['status' => false, 'data' => '', 'message' => $th->getMessage()],400);
         }
     }
 
@@ -82,23 +86,33 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // $usuario = User::findOrFail($id);
-        // $usuario->update($request->all());
-        // $usuario->save();
 
-        // return $usuario;
+        try {
 
-        User::find($id)
-        ->update($request->all());
+            $usuario = User::findOrFail($id);
+            $usuario->update($request->all());
+            $usuario->save();
+            return response()->json(['status' => true, 'data' => $usuario, 'message' => "Se ha actualizado con exito"], 201);
 
-        
+        } catch (\Throwable $th) {
+            return response()->json(['status' => false, 'data' => '', 'message' => $th->getMessage()],400);
+        }
+
+        // $users = User::where('id', $id)->first();
+        // $users->update($request->all());
+        // return response()->json($users, 200);
     }
 
     public function show($id)
     {
-        return User::findOrFail($id);
+        try {
+            $user = User::findOrFail($id);
+            return response()->json(['status' => true, 'data' => $user, 'message' => "Aqui esta el user solicitado"], 201);
 
+        } catch (\Throwable $th) {
+            return response()->json(['status' => false, 'data' => '', 'message' => $th->getMessage()],404);
 
+        }
     }
 
 
@@ -110,8 +124,13 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        User::destroy($id);
-        
-        return ['deleted' => true];
+        try {
+            $user = User::destroy($id);
+            return response()->json(['status' => true, 'data' => $user, 'message' => "Se elimino correctamente"], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json(['status' => false, 'data' => '', 'message' => $th->getMessage()],404);
+
+        }
     }
 }
